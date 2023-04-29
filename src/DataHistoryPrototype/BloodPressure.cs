@@ -6,6 +6,7 @@ namespace DataHistoryPrototype;
 public class BloodPressure : Content
 {
     public static readonly string ContentTypeName = nameof(BloodPressure);
+    public static readonly string ContentTypePath = "/Root/System/Schema/ContentTypes/GenericContent/" + ContentTypeName;
     public static readonly string Ctd = $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <ContentType name=""{ContentTypeName}"" parentType=""GenericContent"" handler=""SenseNet.ContentRepository.GenericContent"" xmlns=""http://schemas.sensenet.com/SenseNet/ContentRepository/ContentTypeDefinition"">
   <DisplayName>{ContentTypeName}</DisplayName>
