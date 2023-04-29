@@ -55,6 +55,10 @@ public partial class MainForm : Form
         saver.RunWorkerCompleted += (o, args) =>
         {
             toolStripStatusLabel1.Text = "Saved";
+            textBox1.Text = string.Empty;
+            textBox2.Text = string.Empty;
+            textBox3.Text = string.Empty;
+            textBox1.Focus();
         };
 
         saver.RunWorkerAsync(data);

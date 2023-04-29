@@ -181,7 +181,9 @@ public class DataHandler : IDataHandler
         }
         catch (Exception e)
         {
+            // Content not found: reinstall and retry this method.
             // unknown error: exit from app.
+
             throw;
         }
     }
