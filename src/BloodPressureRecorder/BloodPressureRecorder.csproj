@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>69b2ae72-b3a9-4075-bd09-b1e0dfd0880a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="sniqeq3i.pbj~" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="IdentityModel" Version="5.1.0" />
+	  <PackageReference Include="IdentityModel.OidcClient" Version="4.0.0-preview.8" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1722.45" />
+	  <PackageReference Include="SenseNet.Client" Version="3.0.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="DebugForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

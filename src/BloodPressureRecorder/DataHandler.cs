@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using SenseNet.Client;
+﻿using SenseNet.Client;
 using System.Text;
 
-namespace DataHistoryPrototype;
+namespace BloodPressureRecorder;
 
 public interface IDataHandler
 {
     Task SaveDataAsync(BloodPressureData data, CancellationToken cancel);
     Task<IEnumerable<BloodPressure>> LoadHistoryAsync(CancellationToken cancel);
+    Task<bool> CheckConnectionAsync(CancellationToken cancel);
 }
 
 public class DataHandler : IDataHandler
@@ -44,61 +44,61 @@ public class DataHandler : IDataHandler
 
         return appFolder;
     }
-    private async Task<AppFolder> InstallAppAsync1(CancellationToken cancel)
-    {
-        var repository = await GetRepositoryAsync(cancel);
-        var appFolder = await repository.LoadContentAsync<AppFolder>(AppPath, cancel);
-        if (appFolder == null)
-        {
-            var needToInstallContentType = false;
-            var needToAllowContentType = false;
-            appFolder = repository.CreateContent<AppFolder>("/Root/Content", AppFolder.ContentTypeName, "BPR-V0_1");
-            appFolder.AppName = "Blood Pressure Recorder";
-            appFolder["AllowedChildTypes"] = new[] { "Folder", nameof(BloodPressure) };
-            while (true)
-            {
-                try
-                {
-                    await appFolder.SaveAsync(cancel);
-                    break;
-                }
-                catch (ClientException ex)
-                {
-                    var errorData = ex.ErrorData;
-                    if (errorData != null)
-                    {
-                        var message = errorData.Message?.Value ?? string.Empty;
-                        if (message.Contains("Unknown ContentType", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            needToInstallContentType = true;
-                        }
-                        else if (message.Contains("Cannot save the content", StringComparison.InvariantCultureIgnoreCase) &&
-                            message.Contains("because its ancestor does not allow the type", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            needToAllowContentType = true;
-                        }
-                        else
-                        {
-                            // unknown error: exit from app.
-                            throw;
-                        }
-                    }
-                    else
-                    {
-                        // unknown error: exit from app.
-                        throw;
-                    }
-                }
+    //private async Task<AppFolder> InstallAppAsync1(CancellationToken cancel)
+    //{
+    //    var repository = await GetRepositoryAsync(cancel);
+    //    var appFolder = await repository.LoadContentAsync<AppFolder>(AppPath, cancel);
+    //    if (appFolder == null)
+    //    {
+    //        var needToInstallContentType = false;
+    //        var needToAllowContentType = false;
+    //        appFolder = repository.CreateContent<AppFolder>("/Root/Content", AppFolder.ContentTypeName, "BPR-V0_1");
+    //        appFolder.AppName = "Blood Pressure Recorder";
+    //        appFolder["AllowedChildTypes"] = new[] { "Folder", nameof(BloodPressure) };
+    //        while (true)
+    //        {
+    //            try
+    //            {
+    //                await appFolder.SaveAsync(cancel);
+    //                break;
+    //            }
+    //            catch (ClientException ex)
+    //            {
+    //                var errorData = ex.ErrorData;
+    //                if (errorData != null)
+    //                {
+    //                    var message = errorData.Message?.Value ?? string.Empty;
+    //                    if (message.Contains("Unknown ContentType", StringComparison.InvariantCultureIgnoreCase))
+    //                    {
+    //                        needToInstallContentType = true;
+    //                    }
+    //                    else if (message.Contains("Cannot save the content", StringComparison.InvariantCultureIgnoreCase) &&
+    //                        message.Contains("because its ancestor does not allow the type", StringComparison.InvariantCultureIgnoreCase))
+    //                    {
+    //                        needToAllowContentType = true;
+    //                    }
+    //                    else
+    //                    {
+    //                        // unknown error: exit from app.
+    //                        throw;
+    //                    }
+    //                }
+    //                else
+    //                {
+    //                    // unknown error: exit from app.
+    //                    throw;
+    //                }
+    //            }
 
-                if (needToInstallContentType)
-                    await InstallContentTypesAsync(cancel);
-                if (needToAllowContentType)
-                    await AllowContentTypesAsync(cancel);
-            }
-        }
+    //            if (needToInstallContentType)
+    //                await InstallContentTypesAsync(cancel);
+    //            if (needToAllowContentType)
+    //                await AllowContentTypesAsync(cancel);
+    //        }
+    //    }
 
-        return appFolder;
-    }
+    //    return appFolder;
+    //}
 
     private async Task<AppFolder> LoadOrCreateAppFolder(CancellationToken cancel)
     {
@@ -200,24 +200,40 @@ public class DataHandler : IDataHandler
         }, cancel);
     }
 
-    private async Task AllowContentTypesAsync(CancellationToken cancel)
+    public async Task<bool> CheckConnectionAsync(CancellationToken cancel)
     {
-        var repository = await GetRepositoryAsync(cancel);
-
-        var body = $@"models=[{{""contentTypes"": [""{AppFolder.ContentTypeName}""]}}]";
-        var result = await RESTCaller.GetResponseStringAsync(
-            "/Root/Content", "AddAllowedChildTypes", HttpMethod.Post, body, repository.Server);
-        Console.WriteLine(result);
+        var isConnected = false;
+        var repository = await GetRepositoryAsync(cancel).ConfigureAwait(false);
+        try
+        {
+            await repository.IsContentExistsAsync(AppPath, cancel);
+            isConnected = true;
+        }
+        catch (Exception e)
+        {
+            //TODO: Show / log exeption
+        }
+        return isConnected;
     }
 
-    private async Task InstallContentTypesAsync(CancellationToken cancel)
-    {
-        var repository = await GetRepositoryAsync(cancel);
+    //private async Task AllowContentTypesAsync(CancellationToken cancel)
+    //{
+    //    var repository = await GetRepositoryAsync(cancel);
 
-        await using var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(AppFolder.Ctd));
-        await Content.UploadAsync("/Root/System/Schema/ContentTypes/GenericContent", AppFolder.ContentTypeName, stream1, "ContentType", server: repository.Server);
+    //    var body = $@"models=[{{""contentTypes"": [""{AppFolder.ContentTypeName}""]}}]";
+    //    var result = await RESTCaller.GetResponseStringAsync(
+    //        "/Root/Content", "AddAllowedChildTypes", HttpMethod.Post, body, repository.Server);
+    //    Console.WriteLine(result);
+    //}
 
-        await using var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(BloodPressure.Ctd));
-        await Content.UploadAsync("/Root/System/Schema/ContentTypes/GenericContent", BloodPressure.ContentTypeName, stream2, "ContentType", server: repository.Server);
-    }
+    //private async Task InstallContentTypesAsync(CancellationToken cancel)
+    //{
+    //    var repository = await GetRepositoryAsync(cancel);
+
+    //    await using var stream1 = new MemoryStream(Encoding.UTF8.GetBytes(AppFolder.Ctd));
+    //    await Content.UploadAsync("/Root/System/Schema/ContentTypes/GenericContent", AppFolder.ContentTypeName, stream1, "ContentType", server: repository.Server);
+
+    //    await using var stream2 = new MemoryStream(Encoding.UTF8.GetBytes(BloodPressure.Ctd));
+    //    await Content.UploadAsync("/Root/System/Schema/ContentTypes/GenericContent", BloodPressure.ContentTypeName, stream2, "ContentType", server: repository.Server);
+    //}
 }

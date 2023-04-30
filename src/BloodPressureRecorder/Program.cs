@@ -1,10 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SenseNet.Client;
 using SenseNet.Extensions.DependencyInjection;
 
-namespace DataHistoryPrototype;
+namespace BloodPressureRecorder;
 
 internal static class Program
 {
@@ -16,7 +15,7 @@ internal static class Program
     {
         IConfiguration config = new ConfigurationBuilder()
             .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
-            .AddUserSecrets("5474e02c-c6cf-423d-b8b1-bda5c1fc4304")
+            .AddUserSecrets("69b2ae72-b3a9-4075-bd09-b1e0dfd0880a")
             .Build();
 
         var services = new ServiceCollection()

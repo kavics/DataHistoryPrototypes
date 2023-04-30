@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SenseNet.Client;
 
-namespace DataHistoryPrototype;
+namespace BloodPressureRecorder;
 
 public class BloodPressure : Content
 {

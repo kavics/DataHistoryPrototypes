@@ -1,13 +1,17 @@
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Data;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DataHistoryPrototype;
+namespace BloodPressureRecorder;
+
+public enum ConnectionStatus { Offline, Connecting, Connected }
 
 public partial class MainForm : Form
 {
     private readonly IServiceProvider _services;
     private readonly string? _initInfo;
+    private ConnectionStatus _connectionState;
+    private int _connectionCheckCounter;
 
     public MainForm(IServiceProvider services, string? initInfo)
     {
@@ -15,14 +19,59 @@ public partial class MainForm : Form
 
         _services = services;
         _initInfo = initInfo;
+
+        _connectionState = ConnectionStatus.Offline;
+        toolStripStatusLabel1.Text = "\u0098";
+        toolStripStatusLabel1.ForeColor = Color.Red;
+        toolStripStatusLabel1.ToolTipText = "Offline";
+
+        connectionCheckTimer.Enabled = true;
     }
 
     private void MainForm_Load(object sender, EventArgs e)
     {
+        CheckConnection();
         if (_initInfo == null)
             return;
         var form = new DebugForm(_initInfo);
         form.ShowDialog();
+    }
+
+    private void CheckConnection()
+    {
+        _connectionState = ConnectionStatus.Connecting;
+        toolStripStatusLabel1.ForeColor = Color.Gold;
+        toolStripStatusLabel1.ToolTipText = "Connecting...";
+
+        var connector = new BackgroundWorker();
+
+        connector.DoWork += (o, args) =>
+        {
+            var result = _services.GetRequiredService<IDataHandler>().CheckConnectionAsync(default)
+                .GetAwaiter().GetResult();
+            args.Result = result;
+        };
+
+        connector.RunWorkerCompleted += (o, args) =>
+        {
+            var connected = (bool)(args.Result ?? false);
+            if (connected)
+            {
+                _connectionCheckCounter = 30;
+                _connectionState = ConnectionStatus.Connected;
+                toolStripStatusLabel1.ForeColor = Color.Green;
+                toolStripStatusLabel1.ToolTipText = "Online";
+            }
+            else
+            {
+                _connectionCheckCounter = 5;
+                _connectionState = ConnectionStatus.Offline;
+                toolStripStatusLabel1.ForeColor = Color.Red;
+                toolStripStatusLabel1.ToolTipText = "Offline";
+            }
+        };
+
+        connector.RunWorkerAsync();
     }
 
     private void saveButton_Click(object sender, EventArgs e)
@@ -38,7 +87,7 @@ public partial class MainForm : Form
     }
     private void SaveData(BloodPressureData data)
     {
-        toolStripStatusLabel1.Text = "Saving...";
+        toolStripStatusLabel2.Text = "Saving...";
 
         var saver = new BackgroundWorker();
 
@@ -54,7 +103,7 @@ public partial class MainForm : Form
 
         saver.RunWorkerCompleted += (o, args) =>
         {
-            toolStripStatusLabel1.Text = "Saved";
+            toolStripStatusLabel2.Text = "Saved";
             textBox1.Text = string.Empty;
             textBox2.Text = string.Empty;
             textBox3.Text = string.Empty;
@@ -71,7 +120,7 @@ public partial class MainForm : Form
 
     private void LoadHistory()
     {
-        toolStripStatusLabel1.Text = "Loading history...";
+        toolStripStatusLabel2.Text = "Loading history...";
 
         var loader = new BackgroundWorker();
         string historyDump = "...not loaded...";
@@ -93,11 +142,19 @@ public partial class MainForm : Form
 
         loader.RunWorkerCompleted += (o, args) =>
         {
-            toolStripStatusLabel1.Text = "History loaded.";
+            toolStripStatusLabel2.Text = "History loaded.";
             var form = new DebugForm(historyDump);
             form.ShowDialog();
         };
 
         loader.RunWorkerAsync();
+    }
+
+    private void connectionCheckTimer_Tick(object sender, EventArgs e)
+    {
+        if (_connectionState == ConnectionStatus.Connecting)
+            return;
+        if(--_connectionCheckCounter <= 0)
+            CheckConnection();
     }
 }

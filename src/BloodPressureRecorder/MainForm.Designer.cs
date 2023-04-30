@@ -1,4 +1,4 @@
-﻿namespace DataHistoryPrototype
+﻿namespace BloodPressureRecorder
 {
     partial class MainForm
     {
@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             label2 = new Label();
             textBox1 = new TextBox();
             textBox2 = new TextBox();
@@ -39,6 +40,8 @@
             historyButton = new Button();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
+            toolStripStatusLabel2 = new ToolStripStatusLabel();
+            connectionCheckTimer = new System.Windows.Forms.Timer(components);
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -74,9 +77,9 @@
             label3.AutoSize = true;
             label3.Location = new Point(82, 3);
             label3.Name = "label3";
-            label3.Size = new Size(60, 15);
+            label3.Size = new Size(49, 15);
             label3.TabIndex = 5;
-            label3.Text = "Diasystole";
+            label3.Text = "Diastole";
             // 
             // textBox3
             // 
@@ -130,18 +133,33 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
             statusStrip1.Location = new Point(0, 58);
             statusStrip1.Name = "statusStrip1";
+            statusStrip1.ShowItemToolTips = true;
             statusStrip1.Size = new Size(385, 22);
             statusStrip1.TabIndex = 13;
             statusStrip1.Text = "statusStrip1";
             // 
             // toolStripStatusLabel1
             // 
+            toolStripStatusLabel1.BackColor = Color.Transparent;
+            toolStripStatusLabel1.Font = new Font("Wingdings 2", 9F, FontStyle.Regular, GraphicsUnit.Point);
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(201, 17);
-            toolStripStatusLabel1.Text = "Enter data and press the SAVE button";
+            toolStripStatusLabel1.Size = new Size(18, 17);
+            toolStripStatusLabel1.Text = "o";
+            toolStripStatusLabel1.ToolTipText = "Offline";
+            // 
+            // toolStripStatusLabel2
+            // 
+            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new Size(201, 17);
+            toolStripStatusLabel2.Text = "Enter data and press the SAVE button";
+            // 
+            // connectionCheckTimer
+            // 
+            connectionCheckTimer.Interval = 1000;
+            connectionCheckTimer.Tick += connectionCheckTimer_Tick;
             // 
             // MainForm
             // 
@@ -159,7 +177,7 @@
             Controls.Add(label2);
             Controls.Add(label5);
             Name = "MainForm";
-            Text = "Blood Pressure Recorder";
+            Text = "Blood Pressure Recorder V1.0";
             Load += MainForm_Load;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
@@ -180,5 +198,7 @@
         private Button historyButton;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
+        private ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.Timer connectionCheckTimer;
     }
 }

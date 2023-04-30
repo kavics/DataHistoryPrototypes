@@ -1,4 +1,4 @@
-﻿namespace DataHistoryPrototype;
+﻿namespace BloodPressureRecorder;
 
 public class BloodPressureData
 {
